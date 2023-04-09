@@ -2,9 +2,6 @@
 #include <fstream>
 #include <sstream>
 #include <vector>
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/property_map/property_map.hpp>
-#include <boost/graph/graphviz.hpp>
 #include <numeric>
 #include <random>
 #include <nlohmann/json.hpp>
@@ -12,9 +9,13 @@
 #include <chrono>
 #include <vector>
 #include <unordered_map>
+// #include "common.h"
+
+
 
 #define TOTAL_AGENT 6897434
 #define coefficient1 0.00000928
+// #define coefficient1 0.001
 #define coefficient2 0.00843
 class Agent{
     public:
@@ -28,7 +29,7 @@ class Agent{
             number_of_neighbors_affected = 0;
             affected = 0;
         }
-        Agent(int zip, int inc, int num_neigh) {
+        Agent(int zip, float inc, int num_neigh) {
             zipcode = zip;
             income = inc;
             number_of_neighbors_affected = num_neigh;
@@ -38,6 +39,7 @@ class Agent{
 int main() {
     int simulation_agents_number =0;
     int total_simulation_step = 700;
+    int agents_max_degree = 0;
     std::vector<int> number_adoption(total_simulation_step);
     int current_number_adoption = 0;
     std::vector<int> neighbors_array;
@@ -53,9 +55,11 @@ int main() {
         std::cout << simulation_agents_number <<  "\n";\
         agents.resize(simulation_agents_number);
         int current_index = 0;
-        int zip, inc, num_neigh;
+        int zip,num_neigh;
+        float inc;
         for ( int i =0; i < simulation_agents_number ; i++){
             file >> zip >> inc >> num_neigh;
+            // std::cout << inc<<std::endl;
             agents[i] = Agent(zip, inc, num_neigh);
         }
         file.close();
@@ -97,27 +101,32 @@ int main() {
         for ( int i =0; i < simulation_agents_number ; i++){
             file4 >> temp;
             number_neighbors_each_agent[i] = temp;
+            if (temp > agents_max_degree){
+                agents_max_degree = temp;
+            }
         }
     }
 
     // for (int i; i < simulation_agents_number; i++){
     //   std::cout << neighbors_prefix_sum[i]<<std::endl;
     // }
-    std::random_device rd;
-    std::mt19937 gen(rd()); 
+    // std::random_device rd;
+    std::mt19937 gen(12); 
     std::uniform_real_distribution<> dis(0.0, 1.0);
+    std::cout << simulation_agents_number<<" "<< total_simulation_step <<std::endl;
     for (int i =0; i < total_simulation_step; i++){
-        for (int j ; j < simulation_agents_number ; j++){
+        for (int j = 0 ; j < simulation_agents_number ; j++){
             //float might not be proper
-            float random_num = dis(gen);
-            float threshold;
-            if (agents[j].affected){
+            double random_num = dis(gen);
+            double threshold;
+            if (agents[j].affected == 1){
                 continue;
             }
             int agent_current_num_neighbor = agents[j].number_of_neighbors_affected;
-            int agent_income = agents[j].income;
-            threshold = coefficient1 * agent_income + coefficient2 * agent_current_num_neighbor;
+            float agent_income = agents[j].income;
+            threshold = coefficient1 * agent_income + coefficient2 * agent_current_num_neighbor/agents_max_degree;
             if (threshold > random_num){
+                // std::cout << "enter" << std::endl;
                 current_number_adoption += 1;
                 agents[j].affected = 1;
                 for(int k = neighbors_prefix_sum[j]; k < neighbors_prefix_sum[j] + number_neighbors_each_agent[j] ; k++){
@@ -128,10 +137,22 @@ int main() {
         number_adoption[i] = current_number_adoption;
         std::cout << number_adoption[i] << std::endl;
     }
-    for (int i=0; i<total_simulation_step; ++i)
-    {
-        std::cout << number_adoption[i] << std::endl;;
-    }
+    // int appear_num = 0;
+    // for (int i =0; i < total_simulation_step; i++){
+
+    // for (int j=0; j < simulation_agents_number ; j++){
+    //         double random_num = dis(gen);
+    //         if (random_num < 1e-2){
+    //             appear_num += 1;
+    //             std::cout << random_num <<std::endl;
+    //         }
+    //     }    
+    // }
+    // std::cout << "probablity" << float(appear_num)/total_simulation_step/simulation_agents_number<<std::endl;
+    // for (int i=0; i<total_simulation_step; ++i)
+    // {
+    //     std::cout << number_adoption[i] << std::endl;;
+    // }
 
     // ofstream myfile ("results.txt");
     // if (myfile.is_open())

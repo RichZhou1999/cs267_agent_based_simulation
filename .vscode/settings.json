@@ -74,6 +74,8 @@
         "forward_list": "cpp",
         "ranges": "cpp",
         "cfenv": "cpp",
-        "valarray": "cpp"
+        "valarray": "cpp",
+        "queue": "cpp",
+        "stack": "cpp"
     }
 }

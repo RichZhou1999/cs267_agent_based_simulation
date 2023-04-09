@@ -7,6 +7,6 @@ find_package(Boost REQUIRED COMPONENTS graph)
 
 include_directories(${Boost_INCLUDE_DIRS})
 
-add_executable(boost-graph-example main.cpp)
+add_executable(boost-graph-example main.cpp common.h)
 
 target_link_libraries(boost-graph-example ${Boost_LIBRARIES})
